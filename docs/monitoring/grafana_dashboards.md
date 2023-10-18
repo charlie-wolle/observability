@@ -91,4 +91,4 @@ volumes:
 
 ## Results
 
-![Dashboard](../images/website-monitoring-dashboard.png)
+![Dashboard](../assets/website-monitoring-dashboard.png)

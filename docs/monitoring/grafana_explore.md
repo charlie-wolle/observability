@@ -6,7 +6,7 @@
 
 Analyze logs from all containers with aggregations, binary operation and formatter.
 
-![Explore Loki](../images/explore_loki.png)
+![Explore Loki](../assets/explore_loki.png)
 
 ## Explore Prometheus
 
@@ -34,4 +34,4 @@ sum by(status, uri) (http_server_requests_seconds_count{instance="obs:9464"})
 
 Discover traces from Tempo and detect resource intensive operations.
 
-![Explore Tempo](../images/explore_tempo.png)
+![Explore Tempo](../assets/explore_tempo.png)

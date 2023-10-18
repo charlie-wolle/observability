@@ -11,7 +11,7 @@ theme:
 nav:
   - Getting started:
       - getting_started/docu_setup.md
-      - getting_started/readme.md
+      - getting_started/project_docker_setup.md
       - getting_started/endpoints.md
   - Monitoring with Grafana:
       - monitoring/grafana_dashboards.md
