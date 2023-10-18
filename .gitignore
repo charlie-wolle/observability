@@ -5,6 +5,9 @@ docker-setup/.data
 *.iml
 .idea
 
+# Word docu
+*.docx
+
 # H2 DB
 data.mv.db
 data.trace.db
