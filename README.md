@@ -1,20 +1,31 @@
 # Introduction 
-TODO: Give a short introduction of your project. Let this section explain the objectives or the motivation behind this project. 
+The scope of this project is to evaluate an open sourch tech stack to observe applications regarding logs, metrics and traces.
+To achieve a real world scenario, a spring boot backend with an nextJS frontend is used as a demo application.
+
+The following tools are used:
+- [Prometheus](https://prometheus.io/)
+- [Grafana](https://grafana.com/)
+- [Promtail](https://grafana.com/docs/loki/latest/clients/promtail/)
+- [Loki](https://grafana.com/oss/loki/)
+- [Tempo](https://grafana.com/oss/tempo/)
 
 # Getting Started
-TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
-1.	Installation process
-2.	Software dependencies
-3.	Latest releases
-4.	API references
+The whole stack is containerized with docker and runnable out of the box.
 
 # Build and Test
-TODO: Describe and show how to build your code and run the tests. 
+### Build spring boot backend
+#### Install Dependencies and build JAR
+```cd ../observability && ./mvnw package && cd ../docker-setup```
+#### Build Docker Image
+```docker build -t tribe.ccc.tt/observability ../observability```
 
-# Contribute
-TODO: Explain how other users and developers can contribute to make your code better. 
+### Build nextJS frontend
+#### Install node_modules
+```cd ../frontend && npm install && cd ../docker-setup```
+#### Build Frontend Docker Image
+```docker build -t tribe.ccc.tt/nextjs ../frontend```
 
-If you want to learn more about creating good readme files then refer the following [guidelines](https://docs.microsoft.com/en-us/azure/devops/repos/git/create-a-readme?view=azure-devops). You can also seek inspiration from the below readme files:
-- [ASP.NET Core](https://github.com/aspnet/Home)
-- [Visual Studio Code](https://github.com/Microsoft/vscode)
-- [Chakra Core](https://github.com/Microsoft/ChakraCore)
+## Build test env
+```docker-compose up```
+or detached mode (container in background):
+```docker-compose up -d```
