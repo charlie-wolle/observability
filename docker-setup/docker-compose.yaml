@@ -1,0 +1,144 @@
+version: "3"
+
+networks:
+  loki:
+
+services:
+  loki:
+    image: grafana/loki:2.8.0
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - loki
+
+  tempo:
+    image: grafana/tempo:latest
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    volumes:
+      - ./config/tempo.yaml:/etc/tempo.yaml
+      - ./tempo-data:/tmp/tempo
+    ports:
+      - "14268:14268"  # jaeger ingest
+      - "3200:3200"   # tempo
+      - "9095:9095" # tempo grpc
+      - "4317:4317"  # otlp grpc
+      - "4318:4318"  # otlp http
+      - "9411:9411"   # zipkin
+    networks:
+      - loki
+
+  promtail:
+    image: grafana/promtail:2.8.2
+    volumes:
+      - ./config/promtail-local-config.yaml:/etc/promtail/config.yaml:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./config/obs-volume:/obs/logs/json
+    command: -config.file=/etc/promtail/config.yaml
+    depends_on:
+      - loki
+    networks:
+      - loki
+
+  prometheus:
+    image: prom/prometheus:latest
+    command:
+      - --config.file=/etc/prometheus.yaml
+      - --web.enable-remote-write-receiver
+      - --enable-feature=exemplar-storage
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=30d
+      - --web.console.libraries=/usr/share/prometheus/console_libraries
+      - --web.console.templates=/usr/share/prometheus/consoles
+      - --web.enable-admin-api
+    volumes:
+      - ./config/prometheus.yaml:/etc/prometheus.yaml
+    ports:
+      - "9090:9090"
+    networks:
+      - loki
+
+  blackbox-exporter:
+    image: "prom/blackbox-exporter:latest"
+    restart: always
+    networks:
+      - loki
+    ports:
+      - "9115:9115"
+    volumes:
+      - ./config/blackbox-exporter.yml:/etc/blackbox-exporter.yml
+    command:
+      - --config.file=/etc/blackbox-exporter.yml
+
+  grafana:
+    environment:
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+      - GF_FEATURE_TOGGLES_ENABLE=traceqlEditor
+      - GF_UNIFIED_ALERTING_ENABLED=true
+    volumes:
+      - ./config/grafana/provisioning/dashboards:/var/lib/grafana/dashboards
+      - ./config/grafana/provisioning/dashboards/dashboard.yml:/etc/grafana/provisioning/dashboards/dashboard.yaml
+      - ./config/datasources.yaml:/etc/grafana/provisioning/datasources/datasource.yaml
+
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    networks:
+      - loki
+
+  obs:
+    image: tribe.ccc.tt/observability
+    depends_on:
+      - tempo
+    volumes:
+      - ./config/obs-volume:/logs/json
+    ports:
+      - "8080:8080"
+    networks:
+      - loki
+
+  nextjs:
+    image: tribe.ccc.tt/nextjs
+    ports:
+      - "4000:4000"
+    networks:
+      - loki
+
+  minio:
+    image: minio/minio
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        mkdir -p /data/loki-data && \
+        mkdir -p /data/loki-ruler && \
+        minio server /data
+    environment:
+      - MINIO_ROOT_USER=loki
+      - MINIO_ROOT_PASSWORD=supersecret
+      - MINIO_PROMETHEUS_AUTH_TYPE=public
+      - MINIO_UPDATE=off
+    ports:
+      - 9000
+    volumes:
+      - ./.data/minio:/data
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      interval: 15s
+      timeout: 20s
+      retries: 5
+    networks:
+      - loki
+
+  mkdocs:
+    image: squidfunk/mkdocs-material
+    ports:
+      - 8000:8000
+    volumes:
+      - ../../tigerteam-observability:/docs:ro
+    restart: unless-stopped
+    networks:
+      - loki

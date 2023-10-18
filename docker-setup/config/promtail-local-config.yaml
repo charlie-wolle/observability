@@ -1,0 +1,52 @@
+---
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+    tenant_id: tenant1
+
+scrape_configs:
+  - job_name: scrape_docker
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+    relabel_configs:
+      - source_labels: ['__meta_docker_container_name']
+        regex: '/(.*)'
+        target_label: 'container'
+
+  - job_name: scrape_docker_logfile_json
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          __path__: /obs/logs/json/app.json
+    pipeline_stages:
+    - multiline:
+        firstline: '^{'
+        max_wait_time: 3s
+    - json:
+        expressions:
+          timeMillis: timeMillis
+          thread: thread
+          level: level
+          loggerName: loggerName
+          message: message
+          endOfBatch: endOfBatch
+          loggerFqcn: loggerFqcn
+          contextMap: contextMap
+          threadId: threadId
+          threadPriority: threadPriority
+    #- labels:
+    #    level:
+    #- template:
+    #    source: message
+    #    template: 'timeMillis={{ .timeMillis }} thread={{ .thread }} level={{ .level | ToLower }} loggerName={{ .loggerName }} message={{ .message }} endOfBatch={{ .endOfBatch }} loggerFqcn={{ .loggerFqcn }} contextMap={{ .contextMap }} threadId={{ .threadId }} threadPriority={{ .threadPriority }}'
+    #- output:
+    #    source: message
+

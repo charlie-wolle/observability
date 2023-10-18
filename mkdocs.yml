@@ -1,0 +1,30 @@
+site_name: Observability
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.tracking
+    - toc.integrate
+    - toc.follow
+
+nav:
+  - Getting started:
+      - getting_started/docu_setup.md
+      - getting_started/readme.md
+      - getting_started/endpoints.md
+  - Monitoring with Grafana:
+      - monitoring/grafana_dashboards.md
+      - monitoring/grafana_explore.md
+      - monitoring/grafana_alerting.md
+  - Logging Spring Bakend:
+      - logging/log4j2.md
+      - logging/cef.md
+
+markdown_extensions:
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - def_list
+  - pymdownx.tasklist:
+      custom_checkbox: true

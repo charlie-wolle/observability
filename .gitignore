@@ -1,0 +1,10 @@
+# Loki test data
+docker-setup/tempo-data
+docker-setup/.data
+# IDE files
+*.iml
+.idea
+
+# H2 DB
+data.mv.db
+data.trace.db
